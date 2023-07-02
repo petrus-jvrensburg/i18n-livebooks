@@ -1,0 +1,880 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# Common Locale Data Repository - Languages, Territories, Populations
+
+```elixir
+# Install dependencies
+Mix.install([
+  :ex_cldr,
+  :ex_cldr_numbers,
+  :ex_cldr_territories,
+  :ex_cldr_languages,
+  :jason
+])
+
+# Define a backend module
+defmodule DemoApp.Backend do
+  use Cldr,
+    locales: ["en"],
+    default_locale: "en",
+    providers: [Cldr.Number, Cldr.Territory, Cldr.Language],
+    json_library: Jason
+end
+
+# Set an app-wide default backend
+Application.put_env(:ex_cldr, :default_backend, DemoApp.Backend)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Generating DemoApp.Backend for 2 locales named [:en, :und] with a default locale named :en
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## What territory info is available?
+
+```elixir
+# CLDR defines a bunch of territories (including individual countries, regions, continents, etc.)
+
+known_territories = Cldr.known_territories()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[:"001", :"002", :"003", :"005", :"009", :"011", :"013", :"014", :"015", :"017", :"018", :"019",
+ :"021", :"029", :"030", :"034", :"035", :"039", :"053", :"054", :"057", :"061", :"142", :"143",
+ :"145", :"150", :"151", :"154", :"155", :"202", :"419", :AC, :AD, :AE, :AF, :AG, :AI, :AL, :AM,
+ :AO, :AQ, :AR, :AS, :AT, :AU, :AW, :AX, :AZ, :BA, :BB, ...]
+```
+
+```elixir
+# How many are there?
+
+Enum.count(known_territories)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+292
+```
+
+```elixir
+# Cldr.Territory.display_name/1 gives a bit more context
+
+known_territories
+|> Enum.each(fn territory_code ->
+  {:ok, name} = Cldr.Territory.display_name(territory_code)
+  IO.puts("#{territory_code}: #{name}")
+end)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+001: world
+002: Africa
+003: North America
+005: South America
+009: Oceania
+011: Western Africa
+013: Central America
+014: Eastern Africa
+015: Northern Africa
+017: Middle Africa
+018: Southern Africa
+019: Americas
+021: Northern America
+029: Caribbean
+030: Eastern Asia
+034: Southern Asia
+035: Southeast Asia
+039: Southern Europe
+053: Australasia
+054: Melanesia
+057: Micronesian Region
+061: Polynesia
+142: Asia
+143: Central Asia
+145: Western Asia
+150: Europe
+151: Eastern Europe
+154: Northern Europe
+155: Western Europe
+202: Sub-Saharan Africa
+419: Latin America
+AC: Ascension Island
+AD: Andorra
+AE: United Arab Emirates
+AF: Afghanistan
+AG: Antigua & Barbuda
+AI: Anguilla
+AL: Albania
+AM: Armenia
+AO: Angola
+AQ: Antarctica
+AR: Argentina
+AS: American Samoa
+AT: Austria
+AU: Australia
+AW: Aruba
+AX: Åland Islands
+AZ: Azerbaijan
+BA: Bosnia & Herzegovina
+BB: Barbados
+BD: Bangladesh
+BE: Belgium
+BF: Burkina Faso
+BG: Bulgaria
+BH: Bahrain
+BI: Burundi
+BJ: Benin
+BL: St. Barthélemy
+BM: Bermuda
+BN: Brunei
+BO: Bolivia
+BQ: Caribbean Netherlands
+BR: Brazil
+BS: Bahamas
+BT: Bhutan
+BV: Bouvet Island
+BW: Botswana
+BY: Belarus
+BZ: Belize
+CA: Canada
+CC: Cocos (Keeling) Islands
+CD: Congo - Kinshasa
+CF: Central African Republic
+CG: Congo - Brazzaville
+CH: Switzerland
+CI: Côte d’Ivoire
+CK: Cook Islands
+CL: Chile
+CM: Cameroon
+CN: China
+CO: Colombia
+CP: Clipperton Island
+CQ: Sark
+CR: Costa Rica
+CU: Cuba
+CV: Cape Verde
+CW: Curaçao
+CX: Christmas Island
+CY: Cyprus
+CZ: Czechia
+DE: Germany
+DG: Diego Garcia
+DJ: Djibouti
+DK: Denmark
+DM: Dominica
+DO: Dominican Republic
+DZ: Algeria
+EA: Ceuta & Melilla
+EC: Ecuador
+EE: Estonia
+EG: Egypt
+EH: Western Sahara
+ER: Eritrea
+ES: Spain
+ET: Ethiopia
+EU: European Union
+EZ: Eurozone
+FI: Finland
+FJ: Fiji
+FK: Falkland Islands
+FM: Micronesia
+FO: Faroe Islands
+FR: France
+GA: Gabon
+GB: United Kingdom
+GD: Grenada
+GE: Georgia
+GF: French Guiana
+GG: Guernsey
+GH: Ghana
+GI: Gibraltar
+GL: Greenland
+GM: Gambia
+GN: Guinea
+GP: Guadeloupe
+GQ: Equatorial Guinea
+GR: Greece
+GS: South Georgia & South Sandwich Islands
+GT: Guatemala
+GU: Guam
+GW: Guinea-Bissau
+GY: Guyana
+HK: Hong Kong SAR China
+HM: Heard & McDonald Islands
+HN: Honduras
+HR: Croatia
+HT: Haiti
+HU: Hungary
+IC: Canary Islands
+ID: Indonesia
+IE: Ireland
+IL: Israel
+IM: Isle of Man
+IN: India
+IO: British Indian Ocean Territory
+IQ: Iraq
+IR: Iran
+IS: Iceland
+IT: Italy
+JE: Jersey
+JM: Jamaica
+JO: Jordan
+JP: Japan
+KE: Kenya
+KG: Kyrgyzstan
+KH: Cambodia
+KI: Kiribati
+KM: Comoros
+KN: St. Kitts & Nevis
+KP: North Korea
+KR: South Korea
+KW: Kuwait
+KY: Cayman Islands
+KZ: Kazakhstan
+LA: Laos
+LB: Lebanon
+LC: St. Lucia
+LI: Liechtenstein
+LK: Sri Lanka
+LR: Liberia
+LS: Lesotho
+LT: Lithuania
+LU: Luxembourg
+LV: Latvia
+LY: Libya
+MA: Morocco
+MC: Monaco
+MD: Moldova
+ME: Montenegro
+MF: St. Martin
+MG: Madagascar
+MH: Marshall Islands
+MK: North Macedonia
+ML: Mali
+MM: Myanmar (Burma)
+MN: Mongolia
+MO: Macao SAR China
+MP: Northern Mariana Islands
+MQ: Martinique
+MR: Mauritania
+MS: Montserrat
+MT: Malta
+MU: Mauritius
+MV: Maldives
+MW: Malawi
+MX: Mexico
+MY: Malaysia
+MZ: Mozambique
+NA: Namibia
+NC: New Caledonia
+NE: Niger
+NF: Norfolk Island
+NG: Nigeria
+NI: Nicaragua
+NL: Netherlands
+NO: Norway
+NP: Nepal
+NR: Nauru
+NU: Niue
+NZ: New Zealand
+OM: Oman
+PA: Panama
+PE: Peru
+PF: French Polynesia
+PG: Papua New Guinea
+PH: Philippines
+PK: Pakistan
+PL: Poland
+PM: St. Pierre & Miquelon
+PN: Pitcairn Islands
+PR: Puerto Rico
+PS: Palestinian Territories
+PT: Portugal
+PW: Palau
+PY: Paraguay
+QA: Qatar
+QO: Outlying Oceania
+RE: Réunion
+RO: Romania
+RS: Serbia
+RU: Russia
+RW: Rwanda
+SA: Saudi Arabia
+SB: Solomon Islands
+SC: Seychelles
+SD: Sudan
+SE: Sweden
+SG: Singapore
+SH: St. Helena
+SI: Slovenia
+SJ: Svalbard & Jan Mayen
+SK: Slovakia
+SL: Sierra Leone
+SM: San Marino
+SN: Senegal
+SO: Somalia
+SR: Suriname
+SS: South Sudan
+ST: São Tomé & Príncipe
+SV: El Salvador
+SX: Sint Maarten
+SY: Syria
+SZ: Eswatini
+TA: Tristan da Cunha
+TC: Turks & Caicos Islands
+TD: Chad
+TF: French Southern Territories
+TG: Togo
+TH: Thailand
+TJ: Tajikistan
+TK: Tokelau
+TL: Timor-Leste
+TM: Turkmenistan
+TN: Tunisia
+TO: Tonga
+TR: Türkiye
+TT: Trinidad & Tobago
+TV: Tuvalu
+TW: Taiwan
+TZ: Tanzania
+UA: Ukraine
+UG: Uganda
+UM: U.S. Outlying Islands
+UN: United Nations
+US: United States
+UY: Uruguay
+UZ: Uzbekistan
+VA: Vatican City
+VC: St. Vincent & Grenadines
+VE: Venezuela
+VG: British Virgin Islands
+VI: U.S. Virgin Islands
+VN: Vietnam
+VU: Vanuatu
+WF: Wallis & Futuna
+WS: Samoa
+XK: Kosovo
+YE: Yemen
+YT: Mayotte
+ZA: South Africa
+ZM: Zambia
+ZW: Zimbabwe
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# some territories contain other territories
+
+Cldr.Territory.children(:EU)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok,
+ [:AT, :BE, :CY, :CZ, :DE, :DK, :EE, :ES, :FI, :FR, :GR, :HR, :HU, :IE, :IT, :LT, :LU, :LV, :MT,
+  :NL, :PL, :PT, :SE, :SI, :SK, :BG, :RO]}
+```
+
+```elixir
+# we can have a look at the hierarchy of territories that a particular territory belongs to
+
+Cldr.territory_chain(:SE)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, [:SE, :"154", :"150", :"001"]}
+```
+
+```elixir
+# for most territories, additional info is available
+
+Cldr.Territory.info(:SE)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok,
+ %{
+   currency: [SEK: %{from: ~D[1873-05-27]}],
+   measurement_system: %{default: :metric, paper_size: :a4, temperature: :metric},
+   language_population: %{
+     "en" => %{population_percent: 86},
+     "fi" => %{population_percent: 2.2, official_status: "official_regional"},
+     "fit" => %{population_percent: 0.55},
+     "ia" => %{population_percent: 0},
+     "rmu" => %{population_percent: 0.093},
+     "se" => %{population_percent: 0.33},
+     "sma" => %{population_percent: 0.0029, literacy_percent: 75},
+     "smj" => %{population_percent: 0.015},
+     "sv" => %{population_percent: 95, official_status: "official"},
+     "yi" => %{population_percent: 0.029}
+   },
+   gdp: 518000000000,
+   literacy_percent: 99,
+   population: 10202500
+ }}
+```
+
+```elixir
+# but this is not the case for all territories
+
+Cldr.Territory.info(:"001")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, nil}
+```
+
+## What language info is available?
+
+```elixir
+# territory info includes a 'language population' map 
+
+{:ok, info} = Cldr.Territory.info(:SE)
+info[:language_population]
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+%{
+  "en" => %{population_percent: 86},
+  "fi" => %{population_percent: 2.2, official_status: "official_regional"},
+  "fit" => %{population_percent: 0.55},
+  "ia" => %{population_percent: 0},
+  "rmu" => %{population_percent: 0.093},
+  "se" => %{population_percent: 0.33},
+  "sma" => %{population_percent: 0.0029, literacy_percent: 75},
+  "smj" => %{population_percent: 0.015},
+  "sv" => %{population_percent: 95, official_status: "official"},
+  "yi" => %{population_percent: 0.029}
+}
+```
+
+```elixir
+# in general, CLDR knows about a lot of languages and language variants
+
+all_locales = Cldr.all_locale_names()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[:aa, :"aa-DJ", :"aa-ER", :ab, :af, :"af-NA", :agq, :ak, :am, :an, :ann, :apc, :ar, :"ar-AE",
+ :"ar-BH", :"ar-DJ", :"ar-DZ", :"ar-EG", :"ar-EH", :"ar-ER", :"ar-IL", :"ar-IQ", :"ar-JO", :"ar-KM",
+ :"ar-KW", :"ar-LB", :"ar-LY", :"ar-MA", :"ar-MR", :"ar-OM", :"ar-PS", :"ar-QA", :"ar-SA", :"ar-SD",
+ :"ar-SO", :"ar-SS", :"ar-SY", :"ar-TD", :"ar-TN", :"ar-YE", :arn, :as, :asa, :ast, :az, :"az-Arab",
+ :"az-Arab-IQ", :"az-Arab-TR", :"az-Cyrl", :"az-Latn", ...]
+```
+
+```elixir
+# How many are there?
+
+Enum.count(all_locales)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+693
+```
+
+```elixir
+# What is the name of the language?
+
+"pt-BR"
+|> Cldr.LanguageTag.parse!()
+|> DemoApp.Backend.Language.to_string()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "Portuguese"}
+```
+
+## Which languages have the most native speakers?
+
+First, we define some helper functions for aggregating the population data in CLDR.
+
+```elixir
+defmodule Helpers do
+  def round_to_nearest_million(number) when is_float(number) do
+    number
+    |> Decimal.from_float()
+    |> round_to_nearest_million()
+  end
+
+  def round_to_nearest_million(number) when is_integer(number) do
+    number
+    |> Decimal.new()
+    |> round_to_nearest_million()
+  end
+
+  def round_to_nearest_million(number) do
+    number
+    |> Decimal.round(-3)
+    |> Decimal.to_integer()
+    |> DemoApp.Backend.Number.to_string!(locale: "en")
+  end
+
+  def language_name(territory_code, language_code) do
+    locale_string = "#{language_code}-#{territory_code}"
+    {:ok, language_tag} = Cldr.LanguageTag.parse(locale_string)
+
+    case DemoApp.Backend.Language.to_string(language_tag) do
+      {:ok, name} -> name
+      _ -> locale_string
+    end
+  end
+
+  def languages_from_territory_info(%{language_population: language_map, population: population}) do
+    language_map
+    |> Enum.map(fn {language_code, %{population_percent: population_percent}} ->
+      {language_code, population_percent * 0.01 * population}
+    end)
+    |> Enum.sort(fn {_language_code_a, population_a}, {_language_code_b, population_b} ->
+      population_a > population_b
+    end)
+    |> Enum.filter(fn {_language_code, population} ->
+      population > 10_000_000
+    end)
+  end
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:module, Helpers, <<70, 79, 82, 49, 0, 0, 16, ...>>, {:languages_from_territory_info, 1}}
+```
+
+Now, we can loop through the known territories, aggregating language population data across all the territories.
+
+```elixir
+min_territory_population_threshold = 50_000_000
+
+language_populations =
+  Cldr.known_territories()
+  |> Enum.map(fn territory_code ->
+    # load territory info map
+    {territory_code, Cldr.Territory.info!(territory_code)}
+  end)
+  |> Enum.filter(fn {_, info} ->
+    # filter territories with no related info, or with small populations
+    is_nil(info) == false && info.population > min_territory_population_threshold
+  end)
+  |> Enum.sort(fn {_territory_code_a, info_a}, {_territory_code_b, info_b} ->
+    # sort the remaining entries by population
+    info_a.population > info_b.population
+  end)
+  |> Enum.map(fn {territory_code, info} ->
+    # summarise the language population info for each territory
+    {:ok, name} = Cldr.Territory.display_name(territory_code)
+
+    language_populations =
+      Helpers.languages_from_territory_info(info)
+      |> Enum.map(fn {language_code, population} ->
+        %{
+          population: Helpers.round_to_nearest_million(population),
+          name: Helpers.language_name(territory_code, language_code),
+          code: language_code
+        }
+      end)
+
+    %{
+      name: name,
+      population: Helpers.round_to_nearest_million(info.population),
+      languages: language_populations
+    }
+  end)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[
+  %{
+    name: "China",
+    languages: [
+      %{code: "zh", name: "Chinese", population: "1,254,618,000"},
+      %{code: "wuu", name: "Wu Chinese", population: "83,641,000"},
+      %{code: "yue-Hans", name: "Cantonese", population: "72,489,000"},
+      %{code: "hsn", name: "Xiang Chinese", population: "40,427,000"},
+      %{code: "hak", name: "Hakka Chinese", population: "32,062,000"},
+      %{code: "nan", name: "Min Nan Chinese", population: "26,486,000"},
+      %{code: "gan", name: "Gan Chinese", population: "23,698,000"}
+    ],
+    population: "1,394,020,000"
+  },
+  %{
+    name: "India",
+    languages: [
+      %{code: "hi", name: "Hindi", population: "543,697,000"},
+      %{code: "en", name: "English", population: "251,957,000"},
+      %{code: "bn", name: "Bangla", population: "107,413,000"},
+      %{code: "te", name: "Telugu", population: "95,478,000"},
+      %{code: "mr", name: "Marathi", population: "92,826,000"},
+      %{code: "ta", name: "Tamil", population: "78,239,000"},
+      %{code: "ur", name: "Urdu", population: "66,305,000"},
+      %{code: "gu", name: "Gujarati", population: "59,674,000"},
+      %{code: "kn", name: "Kannada", population: "49,065,000"},
+      %{code: "or", name: "Odia", population: "42,435,000"},
+      %{code: "ml", name: "Malayalam", population: "42,435,000"},
+      %{code: "pa", name: "Punjabi", population: "37,131,000"},
+      %{code: "bho", name: "Bhojpuri", population: "30,500,000"},
+      %{code: "awa", name: "Awadhi", population: "25,196,000"},
+      %{code: "as", name: "Assamese", population: "17,239,000"},
+      %{code: "mai", name: "Maithili", population: "15,913,000"},
+      %{code: "bgc", name: "Haryanvi", population: "15,913,000"},
+      %{code: "mag", name: "Magahi", population: "15,913,000"},
+      %{code: "mwr", name: "Marwari", population: "15,913,000"},
+      %{code: "hne", name: "hne-IN", population: "14,587,000"},
+      %{code: "dcc", name: "dcc-IN", population: "13,128,000"}
+    ],
+    population: "1,326,090,000"
+  },
+  %{
+    name: "United States",
+    languages: [
+      %{code: "en", name: "English", population: "319,333,000"},
+      %{code: "es", name: "Spanish", population: "31,933,000"}
+    ],
+    population: "332,639,000"
+  },
+  %{
+    name: "Indonesia",
+    languages: [
+      %{code: "id", name: "Indonesian", population: "170,897,000"},
+      %{code: "jv", name: "Javanese", population: "90,789,000"},
+      %{code: "su", name: "Sundanese", population: "32,043,000"},
+      %{code: "mad", name: "Madurese", population: "16,823,000"}
+    ],
+    population: "267,026,000"
+  },
+  %{
+    name: "Pakistan",
+    languages: [
+      %{code: "ur", name: "Urdu", population: "221,826,000"},
+      %{code: "pa-Arab", name: "Punjabi", population: "163,451,000"},
+      %{code: "en", name: "English", population: "116,751,000"},
+      %{code: "lah", name: "Western Panjabi", population: "93,400,000"},
+      %{code: "ps", name: "Pashto", population: "37,360,000"},
+      %{code: "sd", name: "Sindhi", population: "35,025,000"},
+      %{code: "skr", name: "skr-PK", population: "28,020,000"}
+    ],
+    population: "233,501,000"
+  },
+  %{
+    name: "Nigeria",
+    languages: [
+      %{code: "en", name: "English", population: "113,435,000"},
+      %{code: "pcm", name: "Nigerian Pidgin", population: "44,946,000"},
+      %{code: "yo", name: "Yoruba", population: "27,824,000"},
+      %{code: "ig", name: "Igbo", population: "27,824,000"},
+      %{code: "ha", name: "Hausa", population: "27,824,000"},
+      %{code: "fuv", name: "fuv-NG", population: "14,340,000"}
+    ],
+    population: "214,028,000"
+  },
+  %{
+    name: "Brazil",
+    languages: [
+      %{code: "pt", name: "Portuguese", population: "192,662,000"},
+      %{code: "en", name: "English", population: "16,937,000"}
+    ],
+    population: "211,716,000"
+  },
+  %{
+    name: "Bangladesh",
+    languages: [
+      %{code: "bn", name: "Bangla", population: "159,398,000"},
+      %{code: "en", name: "English", population: "29,277,000"},
+      %{code: "rkt", name: "rkt-BD", population: "10,572,000"}
+    ],
+    population: "162,651,000"
+  },
+  %{
+    name: "Russia",
+    languages: [%{code: "ru", name: "Russian", population: "133,219,000"}],
+    population: "141,722,000"
+  },
+  %{
+    name: "Mexico",
+    languages: [
+      %{code: "es", name: "Spanish", population: "106,780,000"},
+      %{code: "en", name: "English", population: "16,725,000"}
+    ],
+    population: "128,650,000"
+  },
+  %{
+    name: "Japan",
+    languages: [%{code: "ja", name: "Japanese", population: "119,232,000"}],
+    population: "125,507,000"
+  },
+  %{
+    name: "Philippines",
+    languages: [
+      %{code: "en", name: "English", population: "69,876,000"},
+      %{code: "fil", name: "Filipino", population: "65,509,000"},
+      %{code: "es", name: "Spanish", population: "33,846,000"},
+      %{code: "ceb", name: "Cebuano", population: "26,203,000"},
+      %{code: "ilo", name: "Iloko", population: "10,481,000"}
+    ],
+    population: "109,181,000"
+  },
+  %{
+    name: "Ethiopia",
+    languages: [
+      %{code: "en", name: "English", population: "46,489,000"},
+      %{code: "am", name: "Amharic", population: "35,677,000"},
+      %{code: "om", name: "Oromo", population: "34,596,000"}
+    ],
+    population: "108,113,000"
+  },
+  %{
+    name: "Egypt",
+    languages: [
+      %{code: "ar", name: "Arabic", population: "97,877,000"},
+      %{code: "arz", name: "Egyptian Arabic", population: "66,639,000"},
+      %{code: "en", name: "English", population: "36,443,000"}
+    ],
+    population: "104,124,000"
+  },
+  %{
+    name: "Congo - Kinshasa",
+    languages: [%{code: "sw", name: "Swahili", population: "50,890,000"}],
+    population: "101,780,000"
+  },
+  %{
+    name: "Vietnam",
+    languages: [%{code: "vi", name: "Vietnamese", population: "84,900,000"}],
+    population: "98,721,000"
+  },
+  %{
+    name: "Iran",
+    languages: [
+      %{code: "fa", name: "Persian", population: "63,692,000"},
+      %{code: "az-Arab", name: "Azerbaijani", population: "20,382,000"}
+    ],
+    population: "84,923,000"
+  },
+  %{
+    name: "Türkiye",
+    languages: [
+      %{code: "tr", name: "Turkish", population: "76,276,000"},
+      %{code: "en", name: "English", population: "13,943,000"}
+    ],
+    population: "82,018,000"
+  },
+  %{
+    name: "Germany",
+    languages: [
+      %{code: "de", name: "German", population: "72,945,000"},
+      %{code: "en", name: "English", population: "51,302,000"},
+      %{code: "fr", name: "French", population: "14,429,000"},
+      %{code: "bar", name: "Bavarian", population: "13,627,000"}
+    ],
+    population: "80,160,000"
+  },
+  %{
+    name: "Thailand",
+    languages: [
+      %{code: "th", name: "Thai", population: "55,182,000"},
+      %{code: "en", name: "English", population: "18,624,000"},
+      %{code: "tts", name: "tts-TH", population: "16,555,000"}
+    ],
+    population: "68,977,000"
+  },
+  %{
+    name: "France",
+    languages: [
+      %{code: "fr", name: "French", population: "67,170,000"},
+      %{code: "en", name: "English", population: "26,461,000"}
+    ],
+    population: "67,848,000"
+  },
+  %{
+    name: "United Kingdom",
+    languages: [
+      %{code: "en", name: "English", population: "64,446,000"},
+      %{code: "fr", name: "French", population: "15,125,000"}
+    ],
+    population: "65,761,000"
+  },
+  %{
+    name: "Italy",
+    languages: [
+      %{code: "it", name: "Italian", population: "59,283,000"},
+      %{code: "en", name: "English", population: "21,217,000"}
+    ],
+    population: "62,403,000"
+  },
+  %{
+    name: "Tanzania",
+    languages: [
+      %{code: "sw", name: "Swahili", population: "52,698,000"},
+      %{code: "en", name: "English", population: "40,401,000"}
+    ],
+    population: "58,553,000"
+  },
+  %{
+    name: "Myanmar (Burma)",
+    languages: [%{code: "my", name: "Burmese", population: "36,218,000"}],
+    population: "56,590,000"
+  },
+  %{
+    name: "South Africa",
+    languages: [
+      %{code: "en", name: "English", population: "17,504,000"},
+      %{code: "zu", name: "Zulu", population: "13,551,000"},
+      %{code: "xh", name: "Xhosa", population: "10,163,000"}
+    ],
+    population: "56,464,000"
+  },
+  %{
+    name: "Kenya",
+    languages: [
+      %{code: "sw", name: "Swahili", population: "35,328,000"},
+      %{code: "en", name: "English", population: "10,170,000"}
+    ],
+    population: "53,528,000"
+  },
+  %{
+    name: "South Korea",
+    languages: [%{code: "ko", name: "Korean", population: "51,835,000"}],
+    population: "51,835,000"
+  },
+  %{
+    name: "Spain",
+    languages: [
+      %{code: "es", name: "Spanish", population: "49,516,000"},
+      %{code: "en", name: "English", population: "12,004,000"}
+    ],
+    population: "50,016,000"
+  }
+]
+```
