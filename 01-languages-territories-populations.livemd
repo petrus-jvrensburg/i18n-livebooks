@@ -408,7 +408,7 @@ Cldr.territory_chain(:SE)
 ```elixir
 # for most territories, additional info is available
 
-Cldr.Territory.info(:SE)
+Cldr.Territory.info(:BR)
 ```
 
 <!-- livebook:{"output":true} -->
@@ -416,23 +416,33 @@ Cldr.Territory.info(:SE)
 ```
 {:ok,
  %{
-   currency: [SEK: %{from: ~D[1873-05-27]}],
+   currency: [
+     BRL: %{from: ~D[1994-07-01]},
+     BRR: %{from: ~D[1993-08-01], to: ~D[1994-07-01]},
+     BRE: %{from: ~D[1990-03-16], to: ~D[1993-08-01]},
+     BRN: %{from: ~D[1989-01-15], to: ~D[1990-03-16]},
+     BRC: %{from: ~D[1986-02-28], to: ~D[1989-01-15]},
+     BRB: %{from: ~D[1967-02-13], to: ~D[1986-02-28]},
+     BRZ: %{from: ~D[1942-11-01], to: ~D[1967-02-13]}
+   ],
    measurement_system: %{default: :metric, paper_size: :a4, temperature: :metric},
    language_population: %{
-     "en" => %{population_percent: 86},
-     "fi" => %{population_percent: 2.2, official_status: "official_regional"},
-     "fit" => %{population_percent: 0.55},
-     "ia" => %{population_percent: 0},
-     "rmu" => %{population_percent: 0.093},
-     "se" => %{population_percent: 0.33},
-     "sma" => %{population_percent: 0.0029, literacy_percent: 75},
-     "smj" => %{population_percent: 0.015},
-     "sv" => %{population_percent: 95, official_status: "official"},
-     "yi" => %{population_percent: 0.029}
+     "de" => %{population_percent: 0.84},
+     "en" => %{population_percent: 8},
+     "es" => %{population_percent: 0.036},
+     "gub" => %{population_percent: 0.0084},
+     "it" => %{population_percent: 0.28},
+     "ja" => %{population_percent: 0.21},
+     "kgp" => %{population_percent: 0.024},
+     "ko" => %{population_percent: 0.021},
+     "pt" => %{population_percent: 91, official_status: "official"},
+     "vec" => %{population_percent: 0.24, official_status: "official_regional"},
+     "xav" => %{population_percent: 0.0047},
+     "yrl" => %{population_percent: 0.01}
    },
-   gdp: 518000000000,
-   literacy_percent: 99,
-   population: 10202500
+   gdp: 3248000000000,
+   literacy_percent: 90.4,
+   population: 211716000
  }}
 ```
 
@@ -563,19 +573,30 @@ defmodule Helpers do
       population > 10_000_000
     end)
   end
+
+  def language_population_summary({territory_code, info}) do
+    languages_from_territory_info(info)
+    |> Enum.map(fn {language_code, population} ->
+      %{
+        population: round_to_nearest_million(population),
+        name: language_name(territory_code, language_code),
+        code: language_code
+      }
+    end)
+  end
 end
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-{:module, Helpers, <<70, 79, 82, 49, 0, 0, 16, ...>>, {:languages_from_territory_info, 1}}
+{:module, Helpers, <<70, 79, 82, 49, 0, 0, 18, ...>>, {:language_population_summary, 1}}
 ```
 
 Now, we can loop through the known territories, aggregating language population data across all the territories.
 
 ```elixir
-min_territory_population_threshold = 50_000_000
+num_largest_territories = 10
 
 language_populations =
   Cldr.known_territories()
@@ -584,31 +605,23 @@ language_populations =
     {territory_code, Cldr.Territory.info!(territory_code)}
   end)
   |> Enum.filter(fn {_, info} ->
-    # filter territories with no related info, or with small populations
-    is_nil(info) == false && info.population > min_territory_population_threshold
+    # filter territories with no related info
+    is_nil(info) == false
   end)
   |> Enum.sort(fn {_territory_code_a, info_a}, {_territory_code_b, info_b} ->
     # sort the remaining entries by population
     info_a.population > info_b.population
   end)
+  # limit the number of countries
+  |> Enum.take(num_largest_territories)
   |> Enum.map(fn {territory_code, info} ->
     # summarise the language population info for each territory
     {:ok, name} = Cldr.Territory.display_name(territory_code)
 
-    language_populations =
-      Helpers.languages_from_territory_info(info)
-      |> Enum.map(fn {language_code, population} ->
-        %{
-          population: Helpers.round_to_nearest_million(population),
-          name: Helpers.language_name(territory_code, language_code),
-          code: language_code
-        }
-      end)
-
     %{
       name: name,
       population: Helpers.round_to_nearest_million(info.population),
-      languages: language_populations
+      languages: Helpers.language_population_summary({territory_code, info})
     }
   end)
 ```
@@ -729,152 +742,43 @@ language_populations =
       %{code: "en", name: "English", population: "16,725,000"}
     ],
     population: "128,650,000"
-  },
-  %{
-    name: "Japan",
-    languages: [%{code: "ja", name: "Japanese", population: "119,232,000"}],
-    population: "125,507,000"
-  },
-  %{
-    name: "Philippines",
-    languages: [
-      %{code: "en", name: "English", population: "69,876,000"},
-      %{code: "fil", name: "Filipino", population: "65,509,000"},
-      %{code: "es", name: "Spanish", population: "33,846,000"},
-      %{code: "ceb", name: "Cebuano", population: "26,203,000"},
-      %{code: "ilo", name: "Iloko", population: "10,481,000"}
-    ],
-    population: "109,181,000"
-  },
-  %{
-    name: "Ethiopia",
-    languages: [
-      %{code: "en", name: "English", population: "46,489,000"},
-      %{code: "am", name: "Amharic", population: "35,677,000"},
-      %{code: "om", name: "Oromo", population: "34,596,000"}
-    ],
-    population: "108,113,000"
-  },
-  %{
-    name: "Egypt",
-    languages: [
-      %{code: "ar", name: "Arabic", population: "97,877,000"},
-      %{code: "arz", name: "Egyptian Arabic", population: "66,639,000"},
-      %{code: "en", name: "English", population: "36,443,000"}
-    ],
-    population: "104,124,000"
-  },
-  %{
-    name: "Congo - Kinshasa",
-    languages: [%{code: "sw", name: "Swahili", population: "50,890,000"}],
-    population: "101,780,000"
-  },
-  %{
-    name: "Vietnam",
-    languages: [%{code: "vi", name: "Vietnamese", population: "84,900,000"}],
-    population: "98,721,000"
-  },
-  %{
-    name: "Iran",
-    languages: [
-      %{code: "fa", name: "Persian", population: "63,692,000"},
-      %{code: "az-Arab", name: "Azerbaijani", population: "20,382,000"}
-    ],
-    population: "84,923,000"
-  },
-  %{
-    name: "Türkiye",
-    languages: [
-      %{code: "tr", name: "Turkish", population: "76,276,000"},
-      %{code: "en", name: "English", population: "13,943,000"}
-    ],
-    population: "82,018,000"
-  },
-  %{
-    name: "Germany",
-    languages: [
-      %{code: "de", name: "German", population: "72,945,000"},
-      %{code: "en", name: "English", population: "51,302,000"},
-      %{code: "fr", name: "French", population: "14,429,000"},
-      %{code: "bar", name: "Bavarian", population: "13,627,000"}
-    ],
-    population: "80,160,000"
-  },
-  %{
-    name: "Thailand",
-    languages: [
-      %{code: "th", name: "Thai", population: "55,182,000"},
-      %{code: "en", name: "English", population: "18,624,000"},
-      %{code: "tts", name: "tts-TH", population: "16,555,000"}
-    ],
-    population: "68,977,000"
-  },
-  %{
-    name: "France",
-    languages: [
-      %{code: "fr", name: "French", population: "67,170,000"},
-      %{code: "en", name: "English", population: "26,461,000"}
-    ],
-    population: "67,848,000"
-  },
-  %{
-    name: "United Kingdom",
-    languages: [
-      %{code: "en", name: "English", population: "64,446,000"},
-      %{code: "fr", name: "French", population: "15,125,000"}
-    ],
-    population: "65,761,000"
-  },
-  %{
-    name: "Italy",
-    languages: [
-      %{code: "it", name: "Italian", population: "59,283,000"},
-      %{code: "en", name: "English", population: "21,217,000"}
-    ],
-    population: "62,403,000"
-  },
-  %{
-    name: "Tanzania",
-    languages: [
-      %{code: "sw", name: "Swahili", population: "52,698,000"},
-      %{code: "en", name: "English", population: "40,401,000"}
-    ],
-    population: "58,553,000"
-  },
-  %{
-    name: "Myanmar (Burma)",
-    languages: [%{code: "my", name: "Burmese", population: "36,218,000"}],
-    population: "56,590,000"
-  },
-  %{
-    name: "South Africa",
-    languages: [
-      %{code: "en", name: "English", population: "17,504,000"},
-      %{code: "zu", name: "Zulu", population: "13,551,000"},
-      %{code: "xh", name: "Xhosa", population: "10,163,000"}
-    ],
-    population: "56,464,000"
-  },
-  %{
-    name: "Kenya",
-    languages: [
-      %{code: "sw", name: "Swahili", population: "35,328,000"},
-      %{code: "en", name: "English", population: "10,170,000"}
-    ],
-    population: "53,528,000"
-  },
-  %{
-    name: "South Korea",
-    languages: [%{code: "ko", name: "Korean", population: "51,835,000"}],
-    population: "51,835,000"
-  },
-  %{
-    name: "Spain",
-    languages: [
-      %{code: "es", name: "Spanish", population: "49,516,000"},
-      %{code: "en", name: "English", population: "12,004,000"}
-    ],
-    population: "50,016,000"
   }
 ]
+```
+
+```elixir
+code = :IN
+{:ok, name} = Cldr.Territory.display_name(code)
+{:ok, info} = Cldr.Territory.info(code)
+lang_populations = Helpers.language_population_summary({code, info})
+{name, lang_populations}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{"India",
+ [
+   %{code: "hi", name: "Hindi", population: "543,697,000"},
+   %{code: "en", name: "English", population: "251,957,000"},
+   %{code: "bn", name: "Bangla", population: "107,413,000"},
+   %{code: "te", name: "Telugu", population: "95,478,000"},
+   %{code: "mr", name: "Marathi", population: "92,826,000"},
+   %{code: "ta", name: "Tamil", population: "78,239,000"},
+   %{code: "ur", name: "Urdu", population: "66,305,000"},
+   %{code: "gu", name: "Gujarati", population: "59,674,000"},
+   %{code: "kn", name: "Kannada", population: "49,065,000"},
+   %{code: "or", name: "Odia", population: "42,435,000"},
+   %{code: "ml", name: "Malayalam", population: "42,435,000"},
+   %{code: "pa", name: "Punjabi", population: "37,131,000"},
+   %{code: "bho", name: "Bhojpuri", population: "30,500,000"},
+   %{code: "awa", name: "Awadhi", population: "25,196,000"},
+   %{code: "as", name: "Assamese", population: "17,239,000"},
+   %{code: "mai", name: "Maithili", population: "15,913,000"},
+   %{code: "bgc", name: "Haryanvi", population: "15,913,000"},
+   %{code: "mag", name: "Magahi", population: "15,913,000"},
+   %{code: "mwr", name: "Marwari", population: "15,913,000"},
+   %{code: "hne", name: "hne-IN", population: "14,587,000"},
+   %{code: "dcc", name: "dcc-IN", population: "13,128,000"}
+ ]}
 ```
