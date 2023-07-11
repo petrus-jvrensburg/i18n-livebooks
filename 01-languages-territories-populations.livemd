@@ -1,14 +1,14 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# Common Locale Data Repository - Languages, Territories, Populations
+# CLDR - Languages, Territories, Populations
 
 ```elixir
 # Install dependencies
 Mix.install([
   :ex_cldr,
-  :ex_cldr_numbers,
   :ex_cldr_territories,
   :ex_cldr_languages,
+  :ex_cldr_numbers,
   :jason
 ])
 
@@ -28,6 +28,105 @@ Application.put_env(:ex_cldr, :default_backend, DemoApp.Backend)
 <!-- livebook:{"output":true} -->
 
 ```
+Resolving Hex dependencies...
+Resolution completed in 0.061s
+New:
+  cldr_utils 2.24.1
+  decimal 2.1.1
+  digital_token 0.6.0
+  ex_cldr 2.37.2
+  ex_cldr_currencies 2.15.0
+  ex_cldr_languages 0.3.3
+  ex_cldr_numbers 2.31.2
+  ex_cldr_territories 2.7.0
+  jason 1.4.1
+* Getting ex_cldr (Hex package)
+* Getting ex_cldr_territories (Hex package)
+* Getting ex_cldr_languages (Hex package)
+* Getting ex_cldr_numbers (Hex package)
+* Getting jason (Hex package)
+* Getting decimal (Hex package)
+* Getting digital_token (Hex package)
+* Getting ex_cldr_currencies (Hex package)
+* Getting cldr_utils (Hex package)
+==> decimal
+Compiling 4 files (.ex)
+Generated decimal app
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> cldr_utils
+Compiling 11 files (.ex)
+Generated cldr_utils app
+==> digital_token
+Compiling 7 files (.ex)
+Generated digital_token app
+==> ex_cldr
+Compiling 1 file (.yrl)
+Compiling 1 file (.xrl)
+Compiling 2 files (.erl)
+Compiling 42 files (.ex)
+Generated ex_cldr app
+==> ex_cldr_territories
+Compiling 3 files (.ex)
+warning: missing parentheses for expression following "do:" keyword. Parentheses are required to solve ambiguity inside keywords.
+
+This error happens when you have function calls without parentheses inside keywords. For example:
+
+    function(arg, one: nested_call a, b, c)
+    function(arg, one: if expr, do: :this, else: :that)
+
+In the examples above, we don't know if the arguments "b" and "c" apply to the function "function" or "nested_call". Or if the keywords "do" and "else" apply to the function "function" or "if". You can solve this by explicitly adding parentheses:
+
+    function(arg, one: if(expr, do: :this, else: :that))
+    function(arg, one: nested_call(a, b, c))
+
+Ambiguity found at:
+  lib/cldr/backend.ex:387
+
+warning: missing parentheses for expression following "do:" keyword. Parentheses are required to solve ambiguity inside keywords.
+
+This error happens when you have function calls without parentheses inside keywords. For example:
+
+    function(arg, one: nested_call a, b, c)
+    function(arg, one: if expr, do: :this, else: :that)
+
+In the examples above, we don't know if the arguments "b" and "c" apply to the function "function" or "nested_call". Or if the keywords "do" and "else" apply to the function "function" or "if". You can solve this by explicitly adding parentheses:
+
+    function(arg, one: if(expr, do: :this, else: :that))
+    function(arg, one: nested_call(a, b, c))
+
+Ambiguity found at:
+  lib/cldr/territory.ex:1134
+
+warning: missing parentheses for expression following "do:" keyword. Parentheses are required to solve ambiguity inside keywords.
+
+This error happens when you have function calls without parentheses inside keywords. For example:
+
+    function(arg, one: nested_call a, b, c)
+    function(arg, one: if expr, do: :this, else: :that)
+
+In the examples above, we don't know if the arguments "b" and "c" apply to the function "function" or "nested_call". Or if the keywords "do" and "else" apply to the function "function" or "if". You can solve this by explicitly adding parentheses:
+
+    function(arg, one: if(expr, do: :this, else: :that))
+    function(arg, one: nested_call(a, b, c))
+
+Ambiguity found at:
+  lib/cldr/territory.ex:1144
+
+Generated ex_cldr_territories app
+==> ex_cldr_languages
+Compiling 1 file (.ex)
+Generated ex_cldr_languages app
+==> ex_cldr_currencies
+Compiling 11 files (.ex)
+Generated ex_cldr_currencies app
+==> ex_cldr_numbers
+Compiling 2 files (.yrl)
+Compiling 2 files (.xrl)
+Compiling 4 files (.erl)
+Compiling 26 files (.ex)
+Generated ex_cldr_numbers app
 Generating DemoApp.Backend for 2 locales named [:en, :und] with a default locale named :en
 ```
 
@@ -38,6 +137,8 @@ Generating DemoApp.Backend for 2 locales named [:en, :und] with a default locale
 ```
 
 ## What territory info is available?
+
+## Section
 
 ```elixir
 # CLDR defines a bunch of territories (including individual countries, regions, continents, etc.)
@@ -394,15 +495,86 @@ Cldr.Territory.children(:EU)
 ```
 
 ```elixir
-# we can have a look at the hierarchy of territories that a particular territory belongs to
-
-Cldr.territory_chain(:SE)
+Cldr.Territory.children!(:EU)
+|> Enum.each(fn territory_code ->
+  {:ok, name} = Cldr.Territory.display_name(territory_code)
+  IO.puts("#{territory_code}: #{name}")
+end)
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-{:ok, [:SE, :"154", :"150", :"001"]}
+AT: Austria
+BE: Belgium
+CY: Cyprus
+CZ: Czechia
+DE: Germany
+DK: Denmark
+EE: Estonia
+ES: Spain
+FI: Finland
+FR: France
+GR: Greece
+HR: Croatia
+HU: Hungary
+IE: Ireland
+IT: Italy
+LT: Lithuania
+LU: Luxembourg
+LV: Latvia
+MT: Malta
+NL: Netherlands
+PL: Poland
+PT: Portugal
+SE: Sweden
+SI: Slovenia
+SK: Slovakia
+BG: Bulgaria
+RO: Romania
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# we can have a look at the sub-continent and continent that a particular territory belongs to
+
+Cldr.territory_chain(:IN)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, [:IN, :"034", :"142", :"001"]}
+```
+
+```elixir
+{:ok, parents} = Cldr.territory_chain(:IN)
+
+parents
+|> Enum.each(fn territory_code ->
+  {:ok, name} = Cldr.Territory.display_name(territory_code)
+  IO.puts("#{territory_code}: #{name}")
+end)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+IN: India
+034: Southern Asia
+142: Asia
+001: world
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
 ```
 
 ```elixir
@@ -440,9 +612,9 @@ Cldr.Territory.info(:BR)
      "xav" => %{population_percent: 0.0047},
      "yrl" => %{population_percent: 0.01}
    },
+   population: 211716000,
    gdp: 3248000000000,
-   literacy_percent: 90.4,
-   population: 211716000
+   literacy_percent: 90.4
  }}
 ```
 
@@ -612,7 +784,7 @@ language_populations =
     # sort the remaining entries by population
     info_a.population > info_b.population
   end)
-  # limit the number of countries
+  # limit the number of territories
   |> Enum.take(num_largest_territories)
   |> Enum.map(fn {territory_code, info} ->
     # summarise the language population info for each territory
@@ -745,6 +917,8 @@ language_populations =
   }
 ]
 ```
+
+Or, show a summary for an individual territory.
 
 ```elixir
 code = :IN
