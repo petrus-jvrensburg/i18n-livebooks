@@ -1,23 +1,24 @@
 # i18n livebooks
---------------------------
 
 A set of livebooks to show how you can localise your code programatically, using the _Common Locale Data Repository (CLDR)_ and Elixir.
 
 ## Getting started
 
-1. Install livebook on your machine
+1. Install livebook on your machine.
 
-See https://livebook.dev
+    See https://livebook.dev
 
-2. Clone this repository to your disk. E.g.
-```
-git clone https://github.com/petrus-jvrensburg/i18n-livebooks.git
-```
+2. Clone this repository to your disk.
 
-or, via SSH
-```
-git clone git@github.com:petrus-jvrensburg/i18n-livebooks.git
-```
+    Using HTTP
+    ```
+    git clone https://github.com/petrus-jvrensburg/i18n-livebooks.git
+    ```
+
+    Or, via SSH
+    ```
+    git clone git@github.com:petrus-jvrensburg/i18n-livebooks.git
+    ```
 
 3. Run livebook, and on the Home screen, select "open". Choose one of the livebooks in this repo to get started.
 

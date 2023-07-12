@@ -1,0 +1,7 @@
+# 2. Working with Locales
+
+## TODO
+
+```elixir
+
+```

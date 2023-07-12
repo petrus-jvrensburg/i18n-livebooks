@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# CLDR - Languages, Territories, Populations
+# 1. CLDR - Languages, Territories, Populations
 
 ```elixir
 # Install dependencies
@@ -38,8 +38,6 @@ Generating DemoApp.Backend for 2 locales named [:en, :und] with a default locale
 ```
 
 ## What territory info is available?
-
-## Section
 
 ```elixir
 # CLDR defines a bunch of territories (including individual countries, regions, continents, etc.)
