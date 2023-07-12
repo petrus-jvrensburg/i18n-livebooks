@@ -28,105 +28,6 @@ Application.put_env(:ex_cldr, :default_backend, DemoApp.Backend)
 <!-- livebook:{"output":true} -->
 
 ```
-Resolving Hex dependencies...
-Resolution completed in 0.061s
-New:
-  cldr_utils 2.24.1
-  decimal 2.1.1
-  digital_token 0.6.0
-  ex_cldr 2.37.2
-  ex_cldr_currencies 2.15.0
-  ex_cldr_languages 0.3.3
-  ex_cldr_numbers 2.31.2
-  ex_cldr_territories 2.7.0
-  jason 1.4.1
-* Getting ex_cldr (Hex package)
-* Getting ex_cldr_territories (Hex package)
-* Getting ex_cldr_languages (Hex package)
-* Getting ex_cldr_numbers (Hex package)
-* Getting jason (Hex package)
-* Getting decimal (Hex package)
-* Getting digital_token (Hex package)
-* Getting ex_cldr_currencies (Hex package)
-* Getting cldr_utils (Hex package)
-==> decimal
-Compiling 4 files (.ex)
-Generated decimal app
-==> jason
-Compiling 10 files (.ex)
-Generated jason app
-==> cldr_utils
-Compiling 11 files (.ex)
-Generated cldr_utils app
-==> digital_token
-Compiling 7 files (.ex)
-Generated digital_token app
-==> ex_cldr
-Compiling 1 file (.yrl)
-Compiling 1 file (.xrl)
-Compiling 2 files (.erl)
-Compiling 42 files (.ex)
-Generated ex_cldr app
-==> ex_cldr_territories
-Compiling 3 files (.ex)
-warning: missing parentheses for expression following "do:" keyword. Parentheses are required to solve ambiguity inside keywords.
-
-This error happens when you have function calls without parentheses inside keywords. For example:
-
-    function(arg, one: nested_call a, b, c)
-    function(arg, one: if expr, do: :this, else: :that)
-
-In the examples above, we don't know if the arguments "b" and "c" apply to the function "function" or "nested_call". Or if the keywords "do" and "else" apply to the function "function" or "if". You can solve this by explicitly adding parentheses:
-
-    function(arg, one: if(expr, do: :this, else: :that))
-    function(arg, one: nested_call(a, b, c))
-
-Ambiguity found at:
-  lib/cldr/backend.ex:387
-
-warning: missing parentheses for expression following "do:" keyword. Parentheses are required to solve ambiguity inside keywords.
-
-This error happens when you have function calls without parentheses inside keywords. For example:
-
-    function(arg, one: nested_call a, b, c)
-    function(arg, one: if expr, do: :this, else: :that)
-
-In the examples above, we don't know if the arguments "b" and "c" apply to the function "function" or "nested_call". Or if the keywords "do" and "else" apply to the function "function" or "if". You can solve this by explicitly adding parentheses:
-
-    function(arg, one: if(expr, do: :this, else: :that))
-    function(arg, one: nested_call(a, b, c))
-
-Ambiguity found at:
-  lib/cldr/territory.ex:1134
-
-warning: missing parentheses for expression following "do:" keyword. Parentheses are required to solve ambiguity inside keywords.
-
-This error happens when you have function calls without parentheses inside keywords. For example:
-
-    function(arg, one: nested_call a, b, c)
-    function(arg, one: if expr, do: :this, else: :that)
-
-In the examples above, we don't know if the arguments "b" and "c" apply to the function "function" or "nested_call". Or if the keywords "do" and "else" apply to the function "function" or "if". You can solve this by explicitly adding parentheses:
-
-    function(arg, one: if(expr, do: :this, else: :that))
-    function(arg, one: nested_call(a, b, c))
-
-Ambiguity found at:
-  lib/cldr/territory.ex:1144
-
-Generated ex_cldr_territories app
-==> ex_cldr_languages
-Compiling 1 file (.ex)
-Generated ex_cldr_languages app
-==> ex_cldr_currencies
-Compiling 11 files (.ex)
-Generated ex_cldr_currencies app
-==> ex_cldr_numbers
-Compiling 2 files (.yrl)
-Compiling 2 files (.xrl)
-Compiling 4 files (.erl)
-Compiling 26 files (.ex)
-Generated ex_cldr_numbers app
 Generating DemoApp.Backend for 2 locales named [:en, :und] with a default locale named :en
 ```
 
@@ -612,9 +513,9 @@ Cldr.Territory.info(:BR)
      "xav" => %{population_percent: 0.0047},
      "yrl" => %{population_percent: 0.01}
    },
-   population: 211716000,
    gdp: 3248000000000,
-   literacy_percent: 90.4
+   literacy_percent: 90.4,
+   population: 211716000
  }}
 ```
 
@@ -765,7 +666,46 @@ end
 {:module, Helpers, <<70, 79, 82, 49, 0, 0, 18, ...>>, {:language_population_summary, 1}}
 ```
 
-Now, we can loop through the known territories, aggregating language population data across all the territories.
+Let's use these helpers to show a summary for an individual territory.
+
+```elixir
+code = :IN
+{:ok, name} = Cldr.Territory.display_name(code)
+{:ok, info} = Cldr.Territory.info(code)
+lang_populations = Helpers.language_population_summary({code, info})
+{name, lang_populations}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{"India",
+ [
+   %{code: "hi", name: "Hindi", population: "543,697,000"},
+   %{code: "en", name: "English", population: "251,957,000"},
+   %{code: "bn", name: "Bangla", population: "107,413,000"},
+   %{code: "te", name: "Telugu", population: "95,478,000"},
+   %{code: "mr", name: "Marathi", population: "92,826,000"},
+   %{code: "ta", name: "Tamil", population: "78,239,000"},
+   %{code: "ur", name: "Urdu", population: "66,305,000"},
+   %{code: "gu", name: "Gujarati", population: "59,674,000"},
+   %{code: "kn", name: "Kannada", population: "49,065,000"},
+   %{code: "or", name: "Odia", population: "42,435,000"},
+   %{code: "ml", name: "Malayalam", population: "42,435,000"},
+   %{code: "pa", name: "Punjabi", population: "37,131,000"},
+   %{code: "bho", name: "Bhojpuri", population: "30,500,000"},
+   %{code: "awa", name: "Awadhi", population: "25,196,000"},
+   %{code: "as", name: "Assamese", population: "17,239,000"},
+   %{code: "mai", name: "Maithili", population: "15,913,000"},
+   %{code: "bgc", name: "Haryanvi", population: "15,913,000"},
+   %{code: "mag", name: "Magahi", population: "15,913,000"},
+   %{code: "mwr", name: "Marwari", population: "15,913,000"},
+   %{code: "hne", name: "hne-IN", population: "14,587,000"},
+   %{code: "dcc", name: "dcc-IN", population: "13,128,000"}
+ ]}
+```
+
+Or, we can loop through the known territories, sorting them by population, and summarize the languages spoken in the most poulous ones.
 
 ```elixir
 num_largest_territories = 10
@@ -916,43 +856,4 @@ language_populations =
     population: "128,650,000"
   }
 ]
-```
-
-Or, show a summary for an individual territory.
-
-```elixir
-code = :IN
-{:ok, name} = Cldr.Territory.display_name(code)
-{:ok, info} = Cldr.Territory.info(code)
-lang_populations = Helpers.language_population_summary({code, info})
-{name, lang_populations}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-{"India",
- [
-   %{code: "hi", name: "Hindi", population: "543,697,000"},
-   %{code: "en", name: "English", population: "251,957,000"},
-   %{code: "bn", name: "Bangla", population: "107,413,000"},
-   %{code: "te", name: "Telugu", population: "95,478,000"},
-   %{code: "mr", name: "Marathi", population: "92,826,000"},
-   %{code: "ta", name: "Tamil", population: "78,239,000"},
-   %{code: "ur", name: "Urdu", population: "66,305,000"},
-   %{code: "gu", name: "Gujarati", population: "59,674,000"},
-   %{code: "kn", name: "Kannada", population: "49,065,000"},
-   %{code: "or", name: "Odia", population: "42,435,000"},
-   %{code: "ml", name: "Malayalam", population: "42,435,000"},
-   %{code: "pa", name: "Punjabi", population: "37,131,000"},
-   %{code: "bho", name: "Bhojpuri", population: "30,500,000"},
-   %{code: "awa", name: "Awadhi", population: "25,196,000"},
-   %{code: "as", name: "Assamese", population: "17,239,000"},
-   %{code: "mai", name: "Maithili", population: "15,913,000"},
-   %{code: "bgc", name: "Haryanvi", population: "15,913,000"},
-   %{code: "mag", name: "Magahi", population: "15,913,000"},
-   %{code: "mwr", name: "Marwari", population: "15,913,000"},
-   %{code: "hne", name: "hne-IN", population: "14,587,000"},
-   %{code: "dcc", name: "dcc-IN", population: "13,128,000"}
- ]}
 ```
