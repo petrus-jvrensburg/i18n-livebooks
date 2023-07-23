@@ -1,7 +1,498 @@
+<!-- livebook:{"persist_outputs":true} -->
+
 # 4. Working with numbers in CLDR
 
-## TODO
+```elixir
+# Install dependencies
+Mix.install([
+  :ex_cldr,
+  # :ex_cldr_numbers,
+  {:ex_cldr_numbers,
+   git: "https://github.com/elixir-cldr/cldr_numbers.git", branch: "main", override: true},
+  :ex_money,
+  :ex_phone_number,
+  :jason,
+  :phoenix_html
+])
+
+# Define a backend module
+defmodule DemoApp.Backend do
+  use Cldr,
+    locales: ["en", "zh", "zh-Hant", "ja", "hi", "pt"],
+    default_locale: "en",
+    providers: [Cldr.Number, Money],
+    json_library: Jason
+end
+
+# Set an app-wide default backend
+Application.put_env(:ex_cldr, :default_backend, DemoApp.Backend)
+
+DemoApp.Backend.put_locale("en-US")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+* Getting ex_cldr_numbers (https://github.com/elixir-cldr/cldr_numbers.git - origin/main)
+remote: Enumerating objects: 3571, done.        
+remote: Counting objects: 100% (796/796), done.        
+remote: Compressing objects: 100% (183/183), done.        
+remote: Total 3571 (delta 598), reused 762 (delta 575), pack-reused 2775        
+Resolving Hex dependencies...
+Resolution completed in 0.039s
+New:
+  cldr_utils 2.24.1
+  decimal 2.1.1
+  digital_token 0.6.0
+  ex_cldr 2.37.2
+  ex_cldr_currencies 2.15.0
+  ex_money 5.13.0
+  ex_phone_number 0.4.2
+  jason 1.4.1
+  nimble_parsec 1.3.1
+  phoenix_html 3.3.1
+  sweet_xml 0.7.3
+* Getting ex_cldr (Hex package)
+* Getting ex_money (Hex package)
+* Getting ex_phone_number (Hex package)
+* Getting jason (Hex package)
+* Getting phoenix_html (Hex package)
+* Getting sweet_xml (Hex package)
+* Getting decimal (Hex package)
+* Getting nimble_parsec (Hex package)
+* Getting ex_cldr_currencies (Hex package)
+* Getting digital_token (Hex package)
+* Getting cldr_utils (Hex package)
+==> decimal
+Compiling 4 files (.ex)
+Generated decimal app
+==> nimble_parsec
+Compiling 4 files (.ex)
+Generated nimble_parsec app
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> phoenix_html
+Compiling 9 files (.ex)
+Generated phoenix_html app
+==> cldr_utils
+Compiling 11 files (.ex)
+Generated cldr_utils app
+==> digital_token
+Compiling 7 files (.ex)
+Generated digital_token app
+==> ex_cldr
+Compiling 1 file (.yrl)
+Compiling 1 file (.xrl)
+Compiling 2 files (.erl)
+Compiling 42 files (.ex)
+Generated ex_cldr app
+==> ex_cldr_currencies
+Compiling 11 files (.ex)
+Generated ex_cldr_currencies app
+==> ex_cldr_numbers
+Compiling 2 files (.yrl)
+Compiling 2 files (.xrl)
+Compiling 4 files (.erl)
+Compiling 26 files (.ex)
+Generated ex_cldr_numbers app
+==> ex_money
+Compiling 26 files (.ex)
+warning: Logger.warn/1 is deprecated. Use Logger.warning/2 instead
+  lib/money/application.ex:43: Money.Application.start_exchange_rate_service?/0
+
+warning: Logger.warn/1 is deprecated. Use Logger.warning/2 instead
+  lib/money/application.ex:59: Money.Application.maybe_log_deprecation/0
+
+warning: Logger.warn/1 is deprecated. Use Logger.warning/2 instead
+  lib/money/application.ex:72: Money.Application.maybe_log_deprecation/0
+
+Generated ex_money app
+==> sweet_xml
+Compiling 2 files (.ex)
+warning: Logger.warn/1 is deprecated. Use Logger.warning/2 instead
+  lib/sweet_xml/options.ex:107: SweetXml.Options.set_up/2
+
+Generated sweet_xml app
+==> ex_phone_number
+Compiling 22 files (.ex)
+warning: the log level :warn is deprecated, use :warning instead
+  (logger 1.15.2) lib/logger.ex:1137: Logger.elixir_level_to_erlang_level/1
+  (logger 1.15.2) lib/logger.ex:618: anonymous fn/2 in Logger.configure/1
+  (elixir 1.15.2) lib/enum.ex:2510: Enum."-reduce/3-lists^foldl/2-0-"/3
+  (logger 1.15.2) lib/logger.ex:616: Logger.configure/1
+  lib/ex_phone_number/metadata/phone_metadata.ex:73: (module)
+  (elixir 1.15.2) src/elixir_compiler.erl:66: :elixir_compiler.dispatch/4
+
+Generated ex_phone_number app
+Generating DemoApp.Backend for 7 locales named [:en, :hi, :ja, :pt, :und, ...] with a default locale named :en
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, #Cldr.LanguageTag<en-US [validated]>}
+```
+
+## Decimal diplomacy
 
 ```elixir
+# to help a user make sense of large numbers, they should include delimeters
+Cldr.Number.to_string!(1_234_567_890)
+```
 
+<!-- livebook:{"output":true} -->
+
+```
+"1,234,567,890"
+```
+
+```elixir
+# you may be used to showing one delimeter every three chartacters, but some
+# locales have different conventions, e.g. in India:
+Cldr.Number.to_string!(1_234_567_890, locale: "hi-IN")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"1,23,45,67,890"
+```
+
+```elixir
+# the characters used for delimeters (and decimals) often differ by locale, e.g. in Brazil:
+Cldr.Number.to_string!(12345.99, locale: "pt-BR")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"12.345,99"
+```
+
+```elixir
+# we can display numbers in a few predefined formats
+Cldr.Number.to_string!(0.12345, format: :standard)
+|> IO.puts()
+
+Cldr.Number.to_string!(0.12345, format: :scientific)
+|> IO.puts()
+
+Cldr.Number.to_string!(0.12345, format: :percent)
+|> IO.puts()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+0.123
+1.2345E-1
+12%
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# you can list the available formats
+Cldr.Number.Format.format_styles_for("en", :latn, DemoApp.Backend)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok,
+ [:scientific, :currency, :percent, :accounting, :currency_long, :standard, :decimal_short,
+  :decimal_long, :currency_short, :accounting_alpha_next_to_number, :accounting_no_symbol,
+  :currency_alpha_next_to_number, :currency_no_symbol]}
+```
+
+```elixir
+# but there are a few number systems (e.g. Roman, Greek, Japanese, Chinese & Korean) 
+# where these format rules wouldn't make sense
+Cldr.Number.Format.format_styles_for("ja", :jpan, DemoApp.Backend)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, []}
+```
+
+```elixir
+# depending on the locale, a 'native' number system may be used
+Cldr.Number.to_string!(12345, locale: "hi-IN")
+|> IO.puts()
+
+Cldr.Number.to_string!(12345, locale: "hi-IN", number_system: :native)
+|> IO.puts()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+12,345
+१२,३४५
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+### Monetary values
+
+```elixir
+# the currency format is very useful
+Cldr.Number.to_string!(1345.32, currency: "USD")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"$1,345.32"
+```
+
+```elixir
+# the same currency and value might be diplayed differently, depending on the locale
+# e.g in Brazil:
+Cldr.Number.to_string!(1345.32, locale: "pt-BR", currency: "USD")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"US$ 1.345,32"
+```
+
+```elixir
+# the 'accounting' format can be used to display negative values in brackets
+[
+  1345.32,
+  -100.00,
+  99.95
+]
+|> Enum.map(fn number ->
+  Cldr.Number.to_string!(number, currency: "USD", format: :accounting)
+end)
+|> Enum.each(&IO.puts/1)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+$1,345.32
+($100.00)
+$99.95
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+### Phone numbers
+
+```elixir
+# for phone numbers, we need to look outside of CLDR, to the 'ex_phone_number' package
+# e.g. a phone number from India
+{:ok, phone_number} = ExPhoneNumber.parse("+91 2212345678", nil)
+ExPhoneNumber.format(phone_number, :international)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"+91 22 1234 5678"
+```
+
+```elixir
+# the number can be displayed without the international dialling code
+ExPhoneNumber.format(phone_number, :national)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"022 1234 5678"
+```
+
+```elixir
+# notice how in different countries the numbers are formatted differently
+# e.g. for France
+{:ok, phone_number} = ExPhoneNumber.parse("+33 109758351", nil)
+ExPhoneNumber.format(phone_number, :international)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"+33 1 09 75 83 51"
+```
+
+```elixir
+# a set of numbers can be cast into a single format,
+# e.g. for storing them consistently in a database
+[
+  "+1 (555) 555-1234",
+  "+91 22 1234 5678",
+  "+33 1 09 75 83 51"
+]
+|> Enum.map(fn str_phone_number ->
+  ExPhoneNumber.parse(str_phone_number, nil)
+end)
+|> Enum.map(fn {:ok, phone_number} ->
+  ExPhoneNumber.format(phone_number, :e164)
+end)
+|> Enum.each(&IO.puts/1)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
++15555551234
++912212345678
++33109758351
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Ordinals, Roman numerals, words
+
+```elixir
+# you may want to show a number as a position (a.k.a. an ordinal number), e.g.
+
+Cldr.Number.to_string!(3, format: :ordinal)
+|> IO.puts()
+
+Cldr.Number.to_string!(3, format: :ordinal, locale: "hi-IN")
+|> IO.puts()
+
+Cldr.Number.to_string!(3, format: :ordinal, locale: "pt-BR")
+|> IO.puts()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+3rd
+3रा
+3º
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# Roman numerals are sometimes used for naming things, like sections, chapters, or events
+("Super Bowl " <> Cldr.Number.to_string!(59, format: :roman))
+|> IO.puts()
+
+# they can also useful for displaying a year value in an interresting way
+("Since " <> Cldr.Number.to_string!(2008, format: :roman))
+|> IO.puts()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Super Bowl LIX
+Since MMVIII
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# and there are certain applications where you may want to spell out numbers explicitly
+
+Cldr.Number.to_string!(1234, format: :spellout)
+|> IO.puts()
+
+Cldr.Number.to_string!(1989, format: :spellout_year)
+|> IO.puts()
+
+Cldr.Number.to_string!(1234, format: :spellout, locale: "hi-IN")
+|> IO.puts()
+
+Cldr.Number.to_string!(1989, format: :spellout_year, locale: "hi-IN")
+|> IO.puts()
+
+Cldr.Number.to_string!(1234, format: :spellout, locale: "pt-BR")
+|> IO.puts()
+
+Cldr.Number.to_string!(1989, format: :spellout_year, locale: "pt-BR")
+|> IO.puts()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+one thousand two hundred thirty-four
+nineteen eighty-nine
+एक हज़ार दो सौ चौंतीस
+एक हज़ार नौ सौ नवासी
+mil duzentos e trinta e quatro
+mil novecentos e oitenta e nove
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Adding markup to formatted numbers
+
+```elixir
+# you can specify your own wrapper function for adding custom markup to number elements
+Cldr.Number.to_string!(5.95,
+  format: :currency,
+  currency: :USD,
+  wrapper: fn
+    curr, :currency_symbol -> "<span class=\"text-sm\">" <> curr <> "</span>"
+    num, :number -> "<span class=\"text-lg font-semibold\">" <> num <> "</span>"
+    el, _other -> el
+  end
+)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"<span class=\"text-sm\">$</span><span class=\"text-lg font-semibold\">5.95</span>"
+```
+
+```elixir
+# we suggest using Phoenix.HTML.Tag to ensure valid HTML is generated
+Cldr.Number.to_string!(5.95,
+  format: :currency,
+  currency: :USD,
+  wrapper: fn
+    curr, :currency_symbol -> Phoenix.HTML.Tag.content_tag(:span, curr, class: "text-sm")
+    num, :number -> Phoenix.HTML.Tag.content_tag(:span, num, class: "text-lg font-semibold")
+    el, _other -> el
+  end
+)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"<span class=\"text-sm\">$</span><span class=\"text-lg font-semibold\">5.95</span>"
 ```
