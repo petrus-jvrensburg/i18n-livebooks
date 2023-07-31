@@ -17,7 +17,7 @@ Mix.install([
 # Define a backend module
 defmodule DemoApp.Backend do
   use Cldr,
-    locales: ["en", "pt", "fr", "ja", "hi", "bn", "ar", "mr", "te", "ta", "gu"],
+    locales: ["en", "es", "pt", "fr", "ja", "hi", "bn", "ar", "mr", "te", "ta", "gu"],
     default_locale: "en",
     providers: [Cldr.Number],
     json_library: Jason
@@ -34,7 +34,9 @@ DemoApp.Backend.put_locale("en-US")
 <!-- livebook:{"output":true} -->
 
 ```
-Generating DemoApp.Backend for 12 locales named [:ar, :bn, :en, :fr, :gu, ...] with a default locale named :en
+
+15:39:05.372 [info] Downloaded locale :es
+Generating DemoApp.Backend for 13 locales named [:ar, :bn, :en, :es, :fr, ...] with a default locale named :en
 ```
 
 <!-- livebook:{"output":true} -->
@@ -144,7 +146,7 @@ Cldr.Number.Format.format_styles_for("en", :latn, DemoApp.Backend)
 
 ```
 {:ok,
- [:scientific, :currency, :accounting, :currency_long, :standard, :percent,
+ [:scientific, :currency, :accounting, :currency_long, :percent, :standard,
   :accounting_alpha_next_to_number, :accounting_no_symbol, :currency_alpha_next_to_number,
   :currency_no_symbol, :currency_short, :decimal_long, :decimal_short]}
 ```
@@ -176,7 +178,7 @@ Cldr.Number.to_string!(1234.56789, format: "#,#,#,0.###")
 
 ```
 
-08:22:47.810 [warning] ex_cldr_numbers: number format "#,#,#,0.###" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
+15:39:41.057 [warning] ex_cldr_numbers: number format "#,#,#,0.###" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
 1,2,3,4.568
 ```
 
@@ -297,6 +299,16 @@ Cldr.Number.to_string!(1345.32, locale: "pt-BR", currency: "USD")
 
 ```
 "US$ 1.345,32"
+```
+
+```elixir
+Cldr.Number.to_string!(10.0, currency: "USD")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"$10.00"
 ```
 
 ```elixir
@@ -624,26 +636,84 @@ Brazil   +5521912345678
 ## Ordinals, Roman numerals, words
 
 ```elixir
-# you may want to show a number as a position (a.k.a. an ordinal number), e.g.
+# and there are certain applications where you may want to spell out numbers explicitly
 
-Cldr.Number.to_string!(3, format: :ordinal)
+["en-US", "hi-IN", "pt-BR"]
+|> Enum.each(fn locale ->
+  Cldr.Number.to_string!(1234, format: :spellout, locale: locale)
+  |> IO.puts()
+end)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+one thousand two hundred thirty-four
+एक हज़ार दो सौ चौंतीस
+mil duzentos e trinta e quatro
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# in some languages, year values are sometimes treated differently:
+Cldr.Number.to_string!(1989, format: :spellout, locale: "en-US")
 |> IO.puts()
 
-Cldr.Number.to_string!(3, format: :ordinal, locale: "hi-IN")
-|> IO.puts()
-
-Cldr.Number.to_string!(3, format: :ordinal, locale: "pt-BR")
+Cldr.Number.to_string!(1989, format: :spellout_year, locale: "en-US")
 |> IO.puts()
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
+one thousand nine hundred eighty-nine
+nineteen eighty-nine
+```
 
-08:22:47.849 [warning] ex_cldr_numbers: number format "#,##0" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
-3rd
-3रा
-3º
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# why is it so difficult to count in French?
+IO.puts("English:")
+
+[60, 70, 80, 90]
+|> Enum.each(fn number ->
+  Cldr.Number.to_string!(number, format: :spellout, locale: "en-US")
+  |> IO.puts()
+end)
+
+IO.puts("\nvs French:")
+
+[60, 70, 80, 90]
+|> Enum.each(fn number ->
+  Cldr.Number.to_string!(number, format: :spellout, locale: "fr-FR")
+  |> IO.puts()
+end)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+English:
+sixty
+seventy
+eighty
+ninety
+
+vs French:
+soixante
+soixante-dix
+quatre-vingts
+quatre-vingt-dix
 ```
 
 <!-- livebook:{"output":true} -->
@@ -676,36 +746,26 @@ Since MMXVIII
 ```
 
 ```elixir
-# and there are certain applications where you may want to spell out numbers explicitly
+# you may want to show a number as a position (a.k.a. an ordinal number), e.g.
 
-Cldr.Number.to_string!(1234, format: :spellout)
+Cldr.Number.to_string!(1, format: :ordinal)
 |> IO.puts()
 
-Cldr.Number.to_string!(1989, format: :spellout_year)
+Cldr.Number.to_string!(1, format: :ordinal, locale: "hi-IN")
 |> IO.puts()
 
-Cldr.Number.to_string!(1234, format: :spellout, locale: "hi-IN")
-|> IO.puts()
-
-Cldr.Number.to_string!(1989, format: :spellout_year, locale: "hi-IN")
-|> IO.puts()
-
-Cldr.Number.to_string!(1234, format: :spellout, locale: "pt-BR")
-|> IO.puts()
-
-Cldr.Number.to_string!(1989, format: :spellout_year, locale: "pt-BR")
+Cldr.Number.to_string!(1, format: :ordinal, locale: "pt-BR")
 |> IO.puts()
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-one thousand two hundred thirty-four
-nineteen eighty-nine
-एक हज़ार दो सौ चौंतीस
-एक हज़ार नौ सौ नवासी
-mil duzentos e trinta e quatro
-mil novecentos e oitenta e nove
+
+15:39:41.112 [warning] ex_cldr_numbers: number format "#,##0" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
+1st
+1ला
+1º
 ```
 
 <!-- livebook:{"output":true} -->
@@ -718,9 +778,10 @@ mil novecentos e oitenta e nove
 
 ```elixir
 # you can specify your own wrapper function for adding custom markup to number elements
-Cldr.Number.to_string!(5.95,
+Cldr.Number.to_string!(73.46,
   format: :currency,
   currency: :USD,
+  locale: "es-US",
   wrapper: fn
     curr, :currency_symbol -> "<span class=\"text-sm\">" <> curr <> "</span>"
     num, :number -> "<span class=\"text-lg font-semibold\">" <> num <> "</span>"
@@ -732,12 +793,12 @@ Cldr.Number.to_string!(5.95,
 <!-- livebook:{"output":true} -->
 
 ```
-"<span class=\"text-sm\">$</span><span class=\"text-lg font-semibold\">5.95</span>"
+"<span class=\"text-lg font-semibold\">73,46</span> <span class=\"text-sm\">US$</span>"
 ```
 
 ```elixir
 # we suggest using Phoenix.HTML.Tag to ensure valid HTML is generated
-Cldr.Number.to_string!(5.95,
+Cldr.Number.to_string!(73.46,
   format: :currency,
   currency: :USD,
   wrapper: fn
@@ -751,5 +812,5 @@ Cldr.Number.to_string!(5.95,
 <!-- livebook:{"output":true} -->
 
 ```
-"<span class=\"text-sm\">$</span><span class=\"text-lg font-semibold\">5.95</span>"
+"<span class=\"text-sm\">$</span><span class=\"text-lg font-semibold\">73.46</span>"
 ```
