@@ -34,8 +34,6 @@ DemoApp.Backend.put_locale("en-US")
 <!-- livebook:{"output":true} -->
 
 ```
-
-15:39:05.372 [info] Downloaded locale :es
 Generating DemoApp.Backend for 13 locales named [:ar, :bn, :en, :es, :fr, ...] with a default locale named :en
 ```
 
@@ -146,7 +144,7 @@ Cldr.Number.Format.format_styles_for("en", :latn, DemoApp.Backend)
 
 ```
 {:ok,
- [:scientific, :currency, :accounting, :currency_long, :percent, :standard,
+ [:scientific, :currency, :accounting, :currency_long, :standard, :percent,
   :accounting_alpha_next_to_number, :accounting_no_symbol, :currency_alpha_next_to_number,
   :currency_no_symbol, :currency_short, :decimal_long, :decimal_short]}
 ```
@@ -178,7 +176,7 @@ Cldr.Number.to_string!(1234.56789, format: "#,#,#,0.###")
 
 ```
 
-15:39:41.057 [warning] ex_cldr_numbers: number format "#,#,#,0.###" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
+08:05:28.841 [warning] ex_cldr_numbers: number format "#,#,#,0.###" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
 1,2,3,4.568
 ```
 
@@ -189,21 +187,46 @@ Cldr.Number.to_string!(1234.56789, format: "#,#,#,0.###")
 ```
 
 ```elixir
+Cldr.Number.System.number_systems_for!("ta", DemoApp.Backend)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+%{default: :latn, native: :tamldec, traditional: :taml}
+```
+
+```elixir
+Cldr.Number.to_string!(12345, locale: "ta", number_system: :traditional)
+```
+
+```elixir
 # depending on the locale, a 'native' number system may be used
 # e.g. for some of the most popular languages in India:
 
 [
-  {"hi-IN", "hindi"},
-  {"bn-IN", "bengali"},
-  {"mr-IN", "marathi"},
-  {"te-IN", "telugu"},
-  {"ta-IN", "tamil"},
-  {"gu-IN", "gujarati"}
+  {"hi", "hindi"},
+  {"bn", "bengali"},
+  {"mr", "marathi"},
+  {"te", "telugu"},
+  {"ta", "tamil"},
+  {"gu", "gujarati"}
 ]
 |> Enum.each(fn {locale, language} ->
   IO.puts(language)
-  IO.puts("\tdefault: " <> Cldr.Number.to_string!(12345, locale: locale))
-  IO.puts("\tnative:  " <> Cldr.Number.to_string!(12345, locale: locale, number_system: :native))
+
+  Cldr.Number.System.number_systems_for!(locale, DemoApp.Backend)
+  |> Enum.each(fn {type, name} ->
+    IO.puts("#{type} (#{name})")
+
+    IO.puts(
+      "\t#{type} (#{name}): " <>
+        Cldr.Number.to_string!(12345, locale: locale, number_system: type)
+    )
+  end)
+
+  # IO.puts("\tdefault: " <> Cldr.Number.to_string!(12345, locale: locale))
+  # IO.puts("\tnative:  " <> Cldr.Number.to_string!(12345, locale: locale, number_system: :native))
   IO.puts("")
 end)
 ```
@@ -212,52 +235,52 @@ end)
 
 ```
 hindi
-	default: 12,345
-	native:  १२,३४५
+default (latn)
+	default (latn): 12,345
+native (deva)
+	native (deva): १२,३४५
 
 bengali
-	default: ১২,৩৪৫
-	native:  ১২,৩৪৫
+default (beng)
+	default (beng): ১২,৩৪৫
+native (beng)
+	native (beng): ১২,৩৪৫
 
 marathi
-	default: १२,३४५
-	native:  १२,३४५
+default (deva)
+	default (deva): १२,३४५
+native (deva)
+	native (deva): १२,३४५
 
 telugu
-	default: 12,345
-	native:  ౧౨,౩౪౫
+default (latn)
+	default (latn): 12,345
+native (telu)
+	native (telu): ౧౨,౩౪౫
 
 tamil
-	default: 12,345
-	native:  ௧௨,௩௪௫
-
-gujarati
-	default: 12,345
-	native:  ૧૨,૩૪૫
-
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-:ok
+default (latn)
+	default (latn): 12,345
+native (tamldec)
+	native (tamldec): ௧௨,௩௪௫
+traditional (taml)
 ```
 
 ```elixir
 [:en, :ar, :hi, :ja]
 |> Enum.each(fn locale ->
-  available_number_systems = Cldr.Number.System.number_system_names_for!(locale, DemoApp.Backend)
-  IO.puts("#{locale} #{inspect(available_number_systems)}")
+  available_number_systems = Cldr.Number.System.number_systems_for!(locale, DemoApp.Backend)
+  IO.puts("#{locale} ->  #{inspect(available_number_systems)}")
 end)
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-en [:latn]
-ar [:arab]
-hi [:latn, :deva]
-ja [:latn, :jpan, :jpanfin]
+en ->  %{default: :latn, native: :latn}
+ar ->  %{default: :arab, native: :arab}
+hi ->  %{default: :latn, native: :deva}
+ja ->  %{default: :latn, native: :latn, traditional: :jpan, finance: :jpanfin}
 ```
 
 <!-- livebook:{"output":true} -->
@@ -762,7 +785,7 @@ Cldr.Number.to_string!(1, format: :ordinal, locale: "pt-BR")
 
 ```
 
-15:39:41.112 [warning] ex_cldr_numbers: number format "#,##0" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
+08:05:28.898 [warning] ex_cldr_numbers: number format "#,##0" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
 1st
 1ला
 1º
