@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# 3. Using gettext for translation
+# 4. Using gettext for translation
 
 ```elixir
 Mix.install([

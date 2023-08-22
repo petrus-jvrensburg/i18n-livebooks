@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# 5. Dates & times in CLDR
+# 6. Dates & times in CLDR
 
 ```elixir
 # Install dependencies

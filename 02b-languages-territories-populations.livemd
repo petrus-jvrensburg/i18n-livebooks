@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# 1. CLDR - Languages, Territories, Populations
+# 2. CLDR - Languages, Territories, Populations
 
 ```elixir
 # Install dependencies

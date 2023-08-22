@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# 4. Working with numbers
+# 5. Working with numbers
 
 ```elixir
 # Install dependencies

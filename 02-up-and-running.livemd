@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# 01 - Up & Running
+# 02 - Up & Running
 
 ```elixir
 Mix.install([
