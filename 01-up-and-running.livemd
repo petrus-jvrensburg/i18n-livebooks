@@ -1,0 +1,356 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# 01 - Up & Running
+
+```elixir
+Mix.install([
+  :gettext,
+  :ex_cldr,
+  :ex_cldr_numbers,
+  :ex_cldr_dates_times,
+  :ex_cldr_trans,
+  :jason
+])
+
+# find the current directory, where the livebook is running
+{current_dir, _} = System.cmd("pwd", [])
+
+# create new directories for translation files
+System.cmd("mkdir", ["-p", "priv/gettext/hi_IN/LC_MESSAGES"])
+System.cmd("mkdir", ["-p", "priv/gettext/pt_BR/LC_MESSAGES"])
+
+# create a new ".po" translation file
+sample_po_translation_file_hi = """
+msgid "%{count} reviews"
+msgstr "%{count} समीक्षाएँ"
+
+msgid "Color"
+msgstr "रंग"
+
+msgid "Size"
+msgstr "आकार"
+
+msgid "Size guide"
+msgstr "साइज़ संदर्शिका"
+"""
+
+sample_po_translation_file_pt = """
+msgid "%{count} reviews"
+msgstr "%{count} avaliações"
+
+msgid "Color"
+msgstr "Cor"
+
+msgid "Size"
+msgstr "Tamanho"
+
+msgid "Size guide"
+msgstr "Guia de tamanho"
+"""
+
+{:ok, file} = File.open("priv/gettext/hi_IN/LC_MESSAGES/default.po", [:write, :utf8])
+IO.write(file, sample_po_translation_file_hi)
+
+{:ok, file} = File.open("priv/gettext/pt_BR/LC_MESSAGES/default.po", [:write, :utf8])
+IO.write(file, sample_po_translation_file_pt)
+
+# define a gettext backend module
+defmodule DemoApp.Gettext do
+  use Gettext, otp_app: :foo
+end
+
+# define a CLDR backend module
+defmodule DemoApp.Backend do
+  use Cldr,
+    locales: ["en", "de", "pt", "hi"],
+    default_locale: "en",
+    providers: [Cldr.Number, Cldr.DateTime, Cldr.Trans],
+    json_library: Jason
+end
+
+# Set an app-wide default backend
+Application.put_env(:ex_cldr, :default_backend, DemoApp.Backend)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Generating DemoApp.Backend for 5 locales named [:de, :en, :hi, :pt, :und] with a default locale named :en
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Translating static strings with gettext
+
+```elixir
+# the 'locale' of the current Elixir process can be set explicitly
+
+Gettext.put_locale("pt_BR")
+Gettext.get_locale()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"pt_BR"
+```
+
+```elixir
+# import your app's gettext 'backend' module to have the markup functions available
+import DemoApp.Gettext
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+DemoApp.Gettext
+```
+
+```elixir
+# static strings that are marked-up using gettext, can be translated at runtime
+
+gettext("Color")
+|> IO.inspect()
+
+gettext("Size")
+|> IO.inspect()
+
+gettext("Size guide")
+|> IO.inspect()
+
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"Cor"
+"Tamanho"
+"Guia de tamanho"
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+# if a translation is not available, the original string in the 'default' language is returned
+
+gettext("This has not been translated yet.")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"This has not been translated yet."
+```
+
+```elixir
+# variables can be interpolated dynamically
+
+num_reviews = 117
+gettext("%{count} reviews", count: num_reviews)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"117 avaliações"
+```
+
+```elixir
+# we can wrap code our code to set a different locale explicitly
+
+Gettext.put_locale("pt_BR")
+
+Gettext.with_locale("hi_IN", fn ->
+  gettext("%{count} reviews", count: num_reviews)
+  |> IO.inspect(label: :hi_IN)
+end)
+
+gettext("%{count} reviews", count: num_reviews)
+|> IO.inspect(label: :pt_BR)
+
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+hi_IN: "117 समीक्षाएँ"
+pt_BR: "117 avaliações"
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Handling variables with ex_cldr
+
+```elixir
+Cldr.Number.to_string!(59.95, locale: "hi-IN", currency: "USD")
+|> IO.inspect()
+
+Cldr.Number.to_string!(59.95, locale: "pt-BR", currency: "USD")
+|> IO.inspect()
+
+Cldr.Number.to_string!(59.95, locale: "de-DE", currency: "USD")
+|> IO.inspect()
+
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"$59.95"
+"US$ 59,95"
+"59,95 $"
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+Cldr.Date.to_string!(~D[1985-12-21], format: :short, locale: "en-US")
+|> IO.inspect()
+
+Cldr.Date.to_string!(~D[1985-12-21], format: :short, locale: "hi-IN")
+|> IO.inspect()
+
+Cldr.Date.to_string!(~D[1985-12-21], format: :short, locale: "de-DE")
+|> IO.inspect()
+
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"12/21/85"
+"21/12/85"
+"21.12.85"
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
+now = DateTime.now!("Etc/UTC")
+earlier = DateTime.add(now, -300)
+
+Cldr.DateTime.Relative.to_string!(earlier, relative_to: now, locale: "en-US")
+|> IO.inspect()
+
+Cldr.DateTime.Relative.to_string!(earlier, relative_to: now, locale: "de-DE")
+|> IO.inspect()
+
+Cldr.DateTime.Relative.to_string!(earlier, relative_to: now, locale: "pt_BR")
+|> IO.inspect()
+
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"5 minutes ago"
+"vor 5 Minuten"
+"há 5 minutos"
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Translating database records with ex_cldr_trans
+
+```elixir
+defmodule DemoApp.Product do
+  use Ecto.Schema
+  use DemoApp.Backend.Trans, translates: [:title, :description]
+
+  schema "products" do
+    field(:title, :string)
+    field(:description, :string)
+    # use the 'translations' macro to set up a map-field with a set of nested 
+    # structs to handle translation values for each configured locale and each 
+    # translatable field
+    translations(:translations)
+  end
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:module, DemoApp.Product, <<70, 79, 82, 49, 0, 0, 20, ...>>,
+ [__schema__: 1, __schema__: 1, __schema__: 1, __schema__: 1, __schema__: 2, __schema__: 2, ...]}
+```
+
+```elixir
+DemoApp.Product.Translations.__schema__(:fields)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[:de, :hi, :pt]
+```
+
+```elixir
+product = %DemoApp.Product{
+  title: "Basic Tee 6-Pack",
+  description: "The Basic Tee 6-Pack allows you to fully express your vibrant personality ...",
+  translations: %DemoApp.Product.Translations{
+    pt: %DemoApp.Product.Translations.Fields{
+      title: "camiseta básica",
+      description:
+        "O Basic Tee 6-Pack permite que você expresse totalmente sua personalidade vibrante ..."
+    }
+    # de: ...,
+    # hi: ...
+  }
+}
+
+IO.inspect(product.title)
+IO.inspect(product.description)
+
+product_pt = Cldr.Trans.Translator.translate(product, :pt)
+
+IO.inspect(product_pt.title)
+IO.inspect(product_pt.description)
+
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"Basic Tee 6-Pack"
+"The Basic Tee 6-Pack allows you to fully express your vibrant personality ..."
+"camiseta básica"
+"O Basic Tee 6-Pack permite que você expresse totalmente sua personalidade vibrante ..."
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```

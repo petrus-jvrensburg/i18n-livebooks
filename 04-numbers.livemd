@@ -17,7 +17,7 @@ Mix.install([
 # Define a backend module
 defmodule DemoApp.Backend do
   use Cldr,
-    locales: ["en", "es", "pt", "fr", "ja", "hi", "bn", "ar", "mr", "te", "ta", "gu"],
+    locales: ["en", "es", "pt", "fr", "de", "ja", "id", "hi", "bn", "ar", "mr", "te", "ta", "gu"],
     default_locale: "en",
     providers: [Cldr.Number],
     json_library: Jason
@@ -34,7 +34,9 @@ DemoApp.Backend.put_locale("en-US")
 <!-- livebook:{"output":true} -->
 
 ```
-Generating DemoApp.Backend for 13 locales named [:ar, :bn, :en, :es, :fr, ...] with a default locale named :en
+
+09:31:42.025 [info] Downloaded locale :de
+Generating DemoApp.Backend for 15 locales named [:ar, :bn, :de, :en, :es, ...] with a default locale named :en
 ```
 
 <!-- livebook:{"output":true} -->
@@ -144,7 +146,7 @@ Cldr.Number.Format.format_styles_for("en", :latn, DemoApp.Backend)
 
 ```
 {:ok,
- [:scientific, :currency, :accounting, :currency_long, :standard, :percent,
+ [:scientific, :currency, :accounting, :currency_long, :percent, :standard,
   :accounting_alpha_next_to_number, :accounting_no_symbol, :currency_alpha_next_to_number,
   :currency_no_symbol, :currency_short, :decimal_long, :decimal_short]}
 ```
@@ -176,7 +178,7 @@ Cldr.Number.to_string!(1234.56789, format: "#,#,#,0.###")
 
 ```
 
-08:05:28.841 [warning] ex_cldr_numbers: number format "#,#,#,0.###" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
+09:32:23.415 [warning] ex_cldr_numbers: number format "#,#,#,0.###" is being compiled. For performance reasons please consider adding this format to the `precompile_number_formats` list in the backend configuration.
 1,2,3,4.568
 ```
 
@@ -187,13 +189,33 @@ Cldr.Number.to_string!(1234.56789, format: "#,#,#,0.###")
 ```
 
 ```elixir
-Cldr.Number.System.number_systems_for!("ta", DemoApp.Backend)
+Cldr.Number.System.number_systems_for!("hi", DemoApp.Backend)
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-%{default: :latn, native: :tamldec, traditional: :taml}
+%{default: :latn, native: :deva}
+```
+
+```elixir
+Cldr.Number.to_string!(123_456_789, locale: "hi", number_system: :default)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"12,34,56,789"
+```
+
+```elixir
+Cldr.Number.to_string!(12345, locale: "hi", number_system: :native)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"१२,३४५"
 ```
 
 ```elixir
@@ -302,6 +324,43 @@ Cldr.Number.System.number_system_from_locale(:hi)
 ### Monetary values
 
 ```elixir
+Cldr.Number.to_string!(59.95, locale: "en", currency: "USD")
+|> IO.puts()
+
+# Cldr.Number.to_string!(59.95, locale: "fr", currency: "USD")
+# |> IO.puts()
+
+Cldr.Number.to_string!(59.95, locale: "de", currency: "USD")
+|> IO.puts()
+
+Cldr.Number.to_string!(59.95, locale: "pt", currency: "USD")
+|> IO.puts()
+
+# Cldr.Number.to_string!(59.95, locale: "id", currency: "USD")
+# |> IO.puts()
+
+# Cldr.Number.to_string!(59.95, locale: "ja", currency: "USD")
+# |> IO.puts()
+
+# Cldr.Number.to_string!(59.95, locale: "hi", currency: "USD")
+# |> IO.puts()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+$59.95
+59,95 $
+US$ 59,95
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+```elixir
 # the currency format is very useful
 Cldr.Number.to_string!(1345.32, currency: "USD")
 ```
@@ -336,7 +395,7 @@ Cldr.Number.to_string!(10.0, currency: "USD")
 
 ```elixir
 # using ex_money, we can decide to display the fractional digits only if they are relevant
-Money.from_float!(:USD, 9.99)
+3
 |> Money.to_string!(no_fraction_if_integer: true)
 |> IO.puts()
 
